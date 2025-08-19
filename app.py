@@ -1,7 +1,5 @@
 from flask import Flask, render_template_string
 from best_team_prognose import main
-import io
-from contextlib import redirect_stdout
 
 app = Flask(__name__)
 
@@ -15,30 +13,37 @@ HTML_PAGE = """
     table { border-collapse: collapse; width: 100%%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background: #f0f0f0; }
-    pre { background: #f8f8f8; padding: 10px; }
   </style>
 </head>
 <body>
-  <h1>Beste 37-Mio-Kombi</h1>
-  <p>Formation: 3-4-3</p>
-
-  <h2>Ergebnis</h2>
-  <pre>{{ result }}</pre>
-
-  <h2>CSV-Datei</h2>
-  <p>Die Datei <code>kicker_manager_best_team_prognose_wunsch.csv</code> wurde erzeugt
-     und liegt im Projektordner.</p>
+  <h1>Beste 37-Mio-Kombi (3-4-3)</h1>
+  <h2>Gesamtpunkte: {{ total_points }} | Gesamtkosten: {{ total_cost }}</h2>
+  <table>
+    <tr>
+      <th>Position</th>
+      <th>Spieler</th>
+      <th>Verein</th>
+      <th>Punkte</th>
+      <th>Preis</th>
+    </tr>
+    {% for p in team %}
+    <tr>
+      <td>{{ p["Position"] }}</td>
+      <td>{{ p["Angezeigter Name"] }}</td>
+      <td>{{ p["Verein"] }}</td>
+      <td>{{ p["Punkte"]|int }}</td>
+      <td>{{ "{:,}".format(int(p["Marktwert"])).replace(",", ".") }}</td>
+    </tr>
+    {% endfor %}
+  </table>
 </body>
 </html>
 """
 
 @app.route("/")
 def index():
-    buf = io.StringIO()
-    with redirect_stdout(buf):
-        main("spieler_mit_position.xlsx")  # deine Excel-Datei aus Repo laden
-    result_text = buf.getvalue()
-    return render_template_string(HTML_PAGE, result=result_text)
+    team, total_points, total_cost = main("spieler_mit_position.xlsx", return_team=True)
+    return render_template_string(HTML_PAGE, team=team, total_points=int(total_points), total_cost=int(total_cost))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
