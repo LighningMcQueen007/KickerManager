@@ -185,7 +185,8 @@ def refill_team(team, players_all, formation, budget, max_pro_verein):
             break
     return team
 
-def main(path):
+def main(path, return_team=False):
+
     players_all = read_players(path)
     players_all = apply_prognosen(players_all)
 
@@ -264,9 +265,13 @@ def main(path):
     import pandas as pd
     pd.DataFrame(team)[["Position","Angezeigter Name","Verein","Punkte","Marktwert","ID"]].to_csv(out, index=False, sep=";")
     print(f"\nTeam als CSV gespeichert: {out}")
+	if return_team:
+    return team, total_points, total_cost
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Nutzung: python best_team_prognose.py <pfad-zur-exceldatei>")
         sys.exit(1)
     main(sys.argv[1])
+
